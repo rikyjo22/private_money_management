@@ -1,16 +1,16 @@
 {
-  "name": "Nama Web Kamu",
-  "short_name": "WebKamu",
+  "name": "Private Money Management",
+  "short_name": "MyMoney",
   "icons": [
     {
-      "src": "logo.png",
+      "src": "Otter.jpg",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/jpeg"
     },
     {
-      "src": "logo-512.png",
+      "src": "Otter.jpg",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/jpeg"
     }
   ],
   "start_url": "/",
