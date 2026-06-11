@@ -1,0 +1,299 @@
+:root {
+    --primary-color: #6366f1;
+    --primary-hover: #4f46e5;
+    --success-color: #10b981;
+    --danger-color: #ef4444;
+    --warning-color: #f59e0b;
+    --bg-main: #f8fafc;
+    --bg-sidebar: #ffffff;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+    --radius-md: 12px;
+    --radius-sm: 8px;
+    --transition: all 0.3s ease;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: 260px;
+    background-color: var(--bg-sidebar);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    padding: 2rem 1.5rem;
+    position: fixed;
+    height: 100vh;
+    z-index: 100;
+    transition: var(--transition);
+}
+
+.profile-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+#user-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--primary-color);
+    margin-bottom: 0.75rem;
+    background-color: #e2e8f0;
+}
+
+.profile-section h3 {
+    font-size: 1.1rem;
+    color: var(--text-main);
+    font-weight: 600;
+}
+
+.sidebar ul { list-style: none; }
+.sidebar ul li { margin-bottom: 0.5rem; }
+.sidebar ul li a {
+    display: block;
+    padding: 0.85rem 1rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    border-radius: var(--radius-sm);
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+.sidebar ul li a:hover, .sidebar ul li a.active {
+    background-color: #eef2ff;
+    color: var(--primary-color);
+}
+
+.content {
+    flex: 1;
+    margin-left: 260px;
+    padding: 2.5rem;
+    max-width: 1200px;
+    width: calc(100% - 260px);
+}
+
+.view-section h2 {
+    font-size: 1.75rem;
+    margin-bottom: 1.5rem;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+h3 { margin-bottom: 1rem; color: var(--text-main); }
+
+.dashboard-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+}
+
+.baki-rek-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
+}
+
+.card {
+    background: #ffffff;
+    padding: 1.5rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.card h3 {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+}
+
+.card p { font-size: 1.6rem; font-weight: 700; }
+.total-saldo p { color: var(--primary-color); }
+.pemasukan-hari p { color: var(--success-color); }
+.pengeluaran-hari p { color: var(--danger-color); }
+
+#list-rekening-saldo .card {
+    border-left: 4px solid var(--primary-color);
+    padding: 1rem 1.25rem;
+}
+#list-rekening-saldo .card h3 { text-transform: none; font-size: 0.9rem; }
+#list-rekening-saldo .card p { font-size: 1.3rem; color: var(--text-main); }
+
+form {
+    background: #ffffff;
+    padding: 2rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    max-width: 600px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+form label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--text-main);
+}
+
+form input[type="text"], form input[type="number"], form input[type="date"], form select, form textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1.25rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background-color: #fff;
+    color: var(--text-main);
+    font-size: 0.95rem;
+    outline: none;
+    transition: var(--transition);
+}
+
+form input:focus, form select:focus, form textarea:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+.input-group { display: flex; gap: 0.5rem; margin-bottom: 1.25rem; }
+.input-group select, .input-group input { margin-bottom: 0; flex: 1; }
+.font-rekening-inputs input[type="number"] { max-width: 150px; }
+
+button {
+    cursor: pointer;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: var(--transition);
+}
+
+form button[type="submit"] { background-color: var(--primary-color); color: #ffffff; width: 100%; }
+form button[type="submit"]:hover { background-color: var(--primary-hover); }
+.input-group button { background-color: #f1f5f9; color: var(--text-main); border: 1px solid var(--border-color); }
+.input-group button:hover { background-color: var(--border-color); }
+
+.filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    background: #ffffff;
+    padding: 1.25rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+}
+.filters div { display: flex; flex-direction: column; gap: 0.25rem; }
+.filters label { font-size: 0.85rem; font-weight: 600; color: var(--text-muted); }
+.filters input, .filters select { padding: 0.6rem 1rem; border: 1px solid var(--border-color); border-radius: var(--radius-sm); outline: none; }
+.filters button { background-color: var(--primary-color); color: white; height: fit-content; }
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #ffffff;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--border-color);
+}
+th, td { padding: 1rem 1.25rem; text-align: left; font-size: 0.95rem; }
+th { background-color: #f8fafc; color: var(--text-muted); font-weight: 600; border-bottom: 2px solid var(--border-color); }
+td { border-bottom: 1px solid var(--border-color); color: var(--text-main); }
+tr:last-child td { border-bottom: none; }
+
+.btn-edit { color: var(--warning-color); background: none; padding: 0 0.5rem; margin-right: 0.5rem;}
+.btn-delete { color: var(--danger-color); background: none; padding: 0 0.5rem;}
+.btn-edit:hover, .btn-delete:hover { text-decoration: underline; }
+
+.tag-container { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; padding: 0.5rem 0; }
+.tag {
+    background-color: #f1f5f9; color: var(--text-main); padding: 0.4rem 0.8rem;
+    border-radius: 50px; font-size: 0.85rem; font-weight: 500;
+    border: 1px solid var(--border-color); display: inline-flex; align-items: center; gap: 0.5rem;
+}
+.tag b { color: var(--danger-color); cursor: pointer; font-size: 1.1rem; line-height: 1; }
+.tag b:hover { color: #b91c1c; }
+
+.modal {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background-color: rgba(0,0,0,0.4); display: flex; justify-content: center; align-items: center;
+    z-index: 1000; backdrop-filter: blur(4px);
+}
+.modal-content {
+    background-color: #ffffff; padding: 2rem; border-radius: var(--radius-md);
+    width: 90%; max-width: 400px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+}
+
+.action-banner {
+    display: flex; justify-content: space-between; align-items: center;
+    background: #f1f5f9; border: 1px solid var(--border-color); padding: 1.25rem;
+    border-radius: var(--radius-md); margin-bottom: 1.5rem; gap: 1rem;
+}
+.action-banner h4 { color: var(--text-main); font-size: 1.1rem; margin-bottom: 0.25rem; }
+.action-banner p { color: var(--text-muted); font-size: 0.9rem; }
+.btn-danger-action { background-color: var(--danger-color); color: white; white-space: nowrap; }
+.btn-danger-action:hover { background-color: #dc2626; }
+
+.insight-container {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.25rem; margin-bottom: 1.5rem;
+}
+.insight-card {
+    padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: #ffffff;
+}
+.insight-card h5 { font-size: 0.95rem; margin-bottom: 0.5rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; }
+.insight-card p { font-size: 0.9rem; color: var(--text-main); margin-bottom: 0.25rem; font-weight: 500; }
+.inside-pemasukan h5 { color: var(--success-color); }
+.inside-pengeluaran h5 { color: var(--danger-color); }
+.stat-high { font-weight: 700; color: #0284c7; }
+.stat-low { font-weight: 700; color: #475569; }
+
+@media (max-width: 768px) {
+    body { flex-direction: column; }
+    .sidebar { width: 100%; height: auto; position: relative; padding: 1rem; border-right: none; border-bottom: 1px solid var(--border-color); }
+    .profile-section { flex-direction: row; margin-bottom: 1rem; padding-bottom: 1rem; text-align: left; gap: 1rem; }
+    #user-avatar { width: 45px; height: 45px; margin-bottom: 0; }
+    .sidebar ul { display: flex; justify-content: space-between; overflow-x: auto; gap: 0.5rem; }
+    .sidebar ul li { margin-bottom: 0; flex-shrink: 0; }
+    .sidebar ul li a { padding: 0.5rem 0.75rem; font-size: 0.9rem; }
+    .content { margin-left: 0; width: 100%; padding: 1.5rem; }
+    table { display: block; overflow-x: auto; white-space: nowrap; }
+    .action-banner { flex-direction: column; align-items: flex-start; }
+    .btn-danger-action { width: 100%; text-align: center; }
+}
+
+/* ==========================================================================
+   ATURAN KHUSUS CETAK PDF & KERTAS (PRINT MEDIA CSS)
+   ========================================================================== */
+@media print {
+    body { background: #ffffff; color: #000000; display: block; }
+    .no-print, .no-print *, th.no-print, td.no-print { display: none !important; }
+    .content { margin-left: 0 !important; padding: 0 !important; width: 100% !important; max-width: 100% !important; }
+    .print-only-header { display: block !important; }
+    .insight-card, table { box-shadow: none !important; border: 1px solid #94a3b8 !important; page-break-inside: avoid; }
+    th { background-color: #f1f5f9 !important; color: #000000 !important; border-bottom: 2px solid #000000 !important; }
+    td, th { padding: 8px 12px !important; font-size: 10pt !important; }
+    @page { size: A4; margin: 15mm 12mm; }
+}

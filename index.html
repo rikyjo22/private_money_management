@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Money Management</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <link rel="icon" href="otter.jpg" type="image/png">
+    <link rel="manifest" href="manifest.json">
+</head>
+<body>
+
+    <nav class="sidebar no-print">
+        <div class="profile-section">
+            <img id="user-avatar" src="https://via.placeholder.com/80" alt="Profile">
+            <h3 id="user-name">Memuat...</h3>
+        </div>
+        <ul>
+            <li><a href="#" id="menu-beranda" class="active" onclick="switchView('beranda')">Beranda</a></li>
+            <li><a href="#" id="menu-transaksi" onclick="switchView('transaksi')">Transaksi</a></li>
+            <li><a href="#" id="menu-report" onclick="switchView('report')">Report Laporan</a></li>
+            <li><a href="#" id="menu-pengaturan" onclick="switchView('pengaturan')">Pengaturan</a></li>
+        </ul>
+    </nav>
+
+    <main class="content">
+        
+        <section id="view-beranda" class="view-section">
+            <h2>Dashboard Keuangan</h2>
+            <div class="dashboard-cards">
+                <div class="card total-saldo"><h3>Total Saldo Net</h3><p id="txt-saldo">Rp 0</p></div>
+                <div class="card pemasukan-hari"><h3>Pemasukan Hari Ini</h3><p id="txt-in-hari">Rp 0</p></div>
+                <div class="card pengeluaran-hari"><h3>Pengeluaran Hari Ini</h3><p id="txt-out-hari">Rp 0</p></div>
+            </div>
+
+            <h3>Daftar Rekening Tabungan</h3>
+            <div id="list-rekening-saldo" class="dashboard-cards baki-rek-grid"></div>
+            
+            <h3 style="margin-top: 2rem;">Transaksi Hari Ini</h3>
+            <div style="overflow-x: auto; width: 100%;">
+                <table id="table-hari-ini">
+                    <thead>
+                        <tr>
+                            <th>Kategori</th>
+                            <th>Sumber Dana</th>
+                            <th>Pemasukan</th>
+                            <th>Pengeluaran</th>
+                            <th>Catatan</th>
+                        </tr>
+                    </thead>
+                    <tbody id="body-hari-ini"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="view-transaksi" class="view-section" style="display:none;">
+            <h2 id="form-title">Input Transaksi</h2>
+            <form id="form-trx" onsubmit="simpanTransaksi(event)">
+                <input type="hidden" id="trx-id">
+                
+                <label>Jenis Transaksi</label>
+                <select id="trx-jenis" onchange="renderKategoriDropdown()">
+                    <option value="Pengeluaran">Pengeluaran</option>
+                    <option value="Pemasukan">Pemasukan</option>
+                </select>
+
+                <label>Jumlah (Rupiah)</label>
+                <input type="number" id="trx-jumlah" required min="1">
+
+                <label>Tanggal</label>
+                <input type="date" id="trx-tanggal" required>
+
+                <label>Sumber Dana / Rekening</label>
+                <select id="trx-sumber" required></select>
+
+                <label>Kategori</label>
+                <div class="input-group">
+                    <select id="trx-kategori" required></select>
+                    <button type="button" onclick="bukaModalKategori()">+</button>
+                </div>
+
+                <label>Catatan Detail</label>
+                <textarea id="trx-catatan" placeholder="Contoh: Beli keperluan runcit harian"></textarea>
+
+                <button type="submit" id="btn-submit-trx">Simpan Transaksi</button>
+                <button type="button" id="btn-batal-trx" style="display:none; background:#64748b; margin-top:10px; width:100%" onclick="resetFormTransaksi()">Batal Edit</button>
+            </form>
+        </section>
+
+        <section id="view-report" class="view-section">
+            <h2 class="no-print">Laporan Transaksi</h2>
+            
+            <div class="action-banner no-print">
+                <div style="flex: 1;">
+                    <h4>Opsi Penyimpanan & Laporan</h4>
+                    <p>Unduh lembar kerja keuangan Anda ke Excel (.xlsx) atau simpan salinan berkas fisik dalam format PDF secara instan tanpa menghapus database.</p>
+                    <div class="btn-group-wrapper" style="display: flex; gap: 0.5rem; margin-top: 0.75rem; flex-wrap: wrap;">
+                        <button onclick="eksporKeExcel()" style="background-color: #16a34a; color: white;">Unduh Excel (.xlsx)</button>
+                        <button onclick="eksporKePDF()" style="background-color: #0284c7; color: white;">Cetak / Simpan PDF</button>
+                    </div>
+                </div>
+                <div class="danger-zone-box" style="border-left: 1px solid #fecdd3; padding-left: 1rem; max-width: 280px;">
+                    <h5 style="color: #9f1239; margin-bottom: 0.25rem;">Pemeliharaan Data</h5>
+                    <p style="font-size: 0.8rem; color: #4c0519; margin-bottom: 0.5rem;">Kosongkan riwayat pembukuan di cloud jika ingin memulai lembaran bulan baru.</p>
+                    <button onclick="bersihkanSemuaDataTransaksi()" class="btn-danger-action" style="padding: 0.5rem 1rem; font-size: 0.85rem;">Reset Semua Transaksi</button>
+                </div>
+            </div>
+
+            <div class="filters no-print">
+                <div>
+                    <label>Dari Tanggal</label>
+                    <input type="date" id="filter-mulai">
+                </div>
+                <div>
+                    <label>Sampai Tanggal</label>
+                    <input type="date" id="filter-selesai">
+                </div>
+                <div>
+                    <label>Jenis Dana</label>
+                    <select id="filter-jenis" onchange="sinkronisasiFilterKategori()">
+                        <option value="Semua">Semua Tipe</option>
+                        <option value="Pemasukan">Hanya Pemasukan</option>
+                        <option value="Pengeluaran">Hanya Pengeluaran</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Kategori Spesifik</label>
+                    <select id="filter-kategori"></select>
+                </div>
+                <button onclick="prosesFilter()" style="margin-top: auto;">Terapkan Filter</button>
+            </div>
+
+            <div id="area-cetak-laporan">
+                <div class="print-only-header" style="display: none; margin-bottom: 2rem;">
+                    <h1 style="font-size: 2rem; border-bottom: 2px solid #1e293b; padding-bottom: 0.5rem;">LAPORAN KEUANGAN PERSONAL</h1>
+                    <p id="print-meta-date" style="color: #64748b; font-weight: 500;"></p>
+                </div>
+
+                <div class="insight-container">
+                    <div class="insight-card inside-pemasukan">
+                        <h5>Analisis Kategori Pemasukan</h5>
+                        <p>Terbesar: <span id="in-terbesar" class="stat-high">-</span></p>
+                        <p>Terkecil: <span id="in-terkecil" class="stat-low">-</span></p>
+                    </div>
+                    <div class="insight-card inside-pengeluaran">
+                        <h5>Analisis Kategori Pengeluaran</h5>
+                        <p>Terbesar (Paling Boros): <span id="out-terbesar" class="stat-high">-</span></p>
+                        <p>Terkecil (Paling Hemat): <span id="out-terkecil" class="stat-low">-</span></p>
+                    </div>
+                </div>
+
+                <div style="overflow-x: auto; width: 100%;">
+                    <table id="table-utama-report">
+                        <thead>
+                            <tr>
+                                <th>Tanggal</th>
+                                <th>Kategori</th>
+                                <th>Sumber</th>
+                                <th>Pemasukan</th>
+                                <th>Pengeluaran</th>
+                                <th>Catatan</th>
+                                <th class="no-print">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="body-table-report"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="view-pengaturan" class="view-section" style="display:none;">
+            <h2>Pengaturan Aplikasi</h2>
+            <form id="form-setting" onsubmit="simpanPengaturan(event)">
+                <label>Nama Lengkap</label>
+                <input type="text" id="set-nama" required>
+                
+                <label>URL Link Foto Profil</label>
+                <input type="text" id="set-foto">
+
+                <h3>Kelola Rekening Tabungan / Sumber Dana</h3>
+                <div id="list-rekening-sistem" class="tag-container"></div>
+                <div class="input-group font-rekening-inputs">
+                    <input type="text" id="add-rek-nama" placeholder="Nama Rekening (cth: Tunai, Bank BCA)">
+                    <input type="number" id="add-rek-saldo" placeholder="Saldo Awal (Rp)">
+                    <button type="button" onclick="tambahRekeningSistem()">Tambah</button>
+                </div>
+
+                <h3>Daftar Kategori Pengeluaran</h3>
+                <div id="list-kat-out" class="tag-container"></div>
+                <div class="input-group">
+                    <input type="text" id="add-kat-out" placeholder="Tambah kategori keluar...">
+                    <button type="button" onclick="tambahKategoriSistem('out')">Tambah</button>
+                </div>
+
+                <h3>Daftar Kategori Pemasukan</h3>
+                <div id="list-kat-in" class="tag-container"></div>
+                <div class="input-group">
+                    <input type="text" id="add-kat-in" placeholder="Tambah kategori masuk...">
+                    <button type="button" onclick="tambahKategoriSistem('in')">Tambah</button>
+                </div>
+
+                <button type="submit" style="background-color: var(--success-color); margin-top: 15px;">Simpan Perubahan Profil</button>
+            </form>
+        </section>
+    </main>
+
+    <div id="modal-kat" class="modal" style="display:none;">
+        <div class="modal-content">
+            <h3>Tambah Kategori Baru</h3>
+            <input type="text" id="input-modal-kat" placeholder="Nama kategori...">
+            <button onclick="simpanKategoriCepat()" style="background: var(--primary-color); color:white; width:100%; margin-bottom:10px;">Simpan & Gunakan</button>
+            <button onclick="tutupModalKategori()" style="background: #e2e8f0; color:var(--text-main); width:100%;">Batal</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
