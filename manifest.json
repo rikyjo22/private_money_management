@@ -1,18 +1,25 @@
 {
   "name": "Private Money Management",
   "short_name": "MyMoney",
+  "description": "Aplikasi pencatat keuangan pribadi offline",
+  "id": "/private_money_management/",
+  "start_url": "/private_money_management/?source=pwa",
+  "scope": "/private_money_management/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2d7ff9",
   "icons": [
     {
       "src": "Otter.jpg",
       "sizes": "192x192",
-      "type": "image/jpeg"
+      "type": "image/jpeg",
+      "purpose": "any maskable"
     },
     {
-      "src": "Otter.jpg",
+      "src": "Otter.jpg", 
       "sizes": "512x512",
-      "type": "image/jpeg"
+      "type": "image/jpeg",
+      "purpose": "any maskable"
     }
-  ],
-  "start_url": "/",
-  "display": "standalone"
+  ]
 }
