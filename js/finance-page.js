@@ -13,11 +13,12 @@
     tabungan: { key: 'saving', title: 'Tabungan', description: 'Progress target tabunganmu.', summary: 'Total tabungan berjalan', titleHeader: 'Target tabungan', subtitleHeader: 'Status' },
   };
   const currency = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 });
+  const locale = () => windowObject.DuitI18n ? windowObject.DuitI18n.locale() : 'id-ID';
   const money = (value) => currency.format(Number(value) || 0).replace(/\u00a0/g, ' ');
   const escapeHtml = (value) => String(value == null ? '' : value).replace(/[&<>'"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[character]));
   const formatDate = (value) => {
     const date = new Date(value);
-    return Number.isNaN(date.getTime()) || date.getTime() === 0 ? '-' : new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }).format(date);
+    return Number.isNaN(date.getTime()) || date.getTime() === 0 ? '-' : new Intl.DateTimeFormat(locale(), { day: '2-digit', month: 'short', year: 'numeric' }).format(date);
   };
   const dateInputValue = (value) => {
     const date = value ? new Date(value) : new Date();
@@ -63,16 +64,16 @@
   }
 
   function renderLastUpdated(value) {
-    const label = documentObject.querySelector('#lastUpdatedLabel');
-    if (!label) return;
+    const button = documentObject.querySelector('#refreshDataButton');
+    if (!button) return;
     if (!value) {
-      label.textContent = 'Belum diperbarui';
+      button.title = 'Belum diperbarui';
       return;
     }
     const date = new Date(value);
-    label.textContent = Number.isNaN(date.getTime())
+    button.title = Number.isNaN(date.getTime())
       ? 'Belum diperbarui'
-      : `Diperbarui ${new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(date)}`;
+      : `${windowObject.DuitI18n?.getLanguage() === 'en' ? 'Last synced' : 'Diperbarui'} ${new Intl.DateTimeFormat(locale(), { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(date)}`;
   }
 
   function restoreLastUpdated() {
@@ -311,8 +312,8 @@
     const tableHead = walletPage ? '<tr><th>Nama akun</th><th>Tipe</th><th class="amount-column">Saldo</th><th class="account-actions-header">Aksi</th></tr>' : (categoryPage ? '<tr><th>Nama kategori</th><th>Tipe</th><th class="account-actions-header">Aksi</th></tr>' : (transactionPage ? '<tr><th>Tanggal</th><th>Tipe</th><th>Kategori</th><th class="amount-column">Jumlah</th><th>Keterangan</th><th class="account-actions-header">Aksi</th></tr>' : `<tr><th id="financeTitleHeader">${config.titleHeader}</th><th id="financeSubtitleHeader">${config.subtitleHeader}</th><th>Tanggal</th><th class="amount-column">Jumlah</th></tr>`));
     const tableColumns = categoryPage ? 3 : (transactionPage ? 6 : 4);
     const initialHeading = config.key === 'wallet' ? 'DAFTAR AKUN' : (config.key === 'income' ? 'DAFTAR PEMASUKAN' : (config.key === 'transaction' ? 'Daftar Transaksi' : (categoryPage ? 'DAFTAR KATEGORI' : `Daftar ${config.title.toLowerCase()}`)));
-    if (walletPage) return `${intro}${summary}<section class="panel wallet-panel wallet-card-panel"><div class="panel-heading"><div><h2 id="financeListHeading">${initialHeading}</h2><p class="muted" id="financeSourceLabel" hidden></p></div>${addButton}</div><div id="financeList" class="wallet-card-grid"><p class="muted wallet-empty">Memuat data...</p></div></section>`;
-    return `${intro}${summary}<section class="panel income-panel${walletPage ? ' wallet-panel' : ''}${categoryPage ? ' category-panel' : ''}${compactPage && !walletPage ? ' income-list-panel' : ''}"><div class="panel-heading"><div><h2 id="financeListHeading">${initialHeading}</h2><p class="muted" id="financeSourceLabel" hidden></p></div>${addButton}</div><div class="income-table-wrap"><table class="income-table${walletPage ? ' wallet-table' : ''}${categoryPage ? ' category-table' : ''}${transactionPage ? ' transaction-table' : ''}${compactPage && !walletPage ? ' compact-finance-table' : ''}"><thead>${tableHead}</thead><tbody id="financeList"><tr><td colspan="${tableColumns}" class="income-empty">Memuat data...</td></tr></tbody></table></div></section>`;
+    if (walletPage) return `${intro}${summary}<section class="panel wallet-panel wallet-card-panel wallet-screen"><div class="panel-heading"><div><h2 id="financeListHeading">${initialHeading}</h2><p class="muted" id="financeSourceLabel" hidden></p></div>${addButton}</div><div id="financeList" class="wallet-card-grid"><p class="muted wallet-empty">Memuat data...</p></div></section>`;
+    return `${intro}${summary}<section class="panel income-panel${walletPage ? ' wallet-panel' : ''}${categoryPage ? ' category-panel category-screen' : ''}${compactPage && !walletPage ? ' income-list-panel' : ''}${transactionPage ? ' transaction-screen' : ''}"><div class="panel-heading"><div><h2 id="financeListHeading">${initialHeading}</h2><p class="muted" id="financeSourceLabel" hidden></p></div>${addButton}</div><div class="income-table-wrap"><table class="income-table${walletPage ? ' wallet-table' : ''}${categoryPage ? ' category-table' : ''}${transactionPage ? ' transaction-table' : ''}${compactPage && !walletPage ? ' compact-finance-table' : ''}"><thead>${tableHead}</thead><tbody id="financeList"><tr><td colspan="${tableColumns}" class="income-empty">Memuat data...</td></tr></tbody></table></div></section>`;
   }
 
   function dashboardShell() {
@@ -713,7 +714,7 @@
     writeCache('wallet', cached);
     closeAccountModal();
     if (String(windowObject.location.hash).slice(1) === 'dompet') renderFinance(cached, configs.dompet);
-    showToast('Akun disimpan di data lokal. Tekan Perbarui data untuk mengirim ke spreadsheet.');
+    showToast('Akun disimpan di perangkat. Tekan Sinkronkan data untuk menyimpan perubahan.');
   }
 
   function bindWalletActions() {
@@ -1173,7 +1174,8 @@
       ? items.filter((item) => String(item.status || 'active').toLowerCase() !== 'deleted')
       : items;
     if (config.key === 'wallet') {
-      list.innerHTML = items.length ? items.map((item) => `<article class="wallet-account-card" draggable="true" data-account-row-id="${escapeHtml(item.id)}"><div class="wallet-account-card-head"><div><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(capitalizeFirst(item.subtitle))}</span></div><span class="wallet-account-grip" aria-hidden="true">⋮⋮</span></div><div class="wallet-account-balance"><small>Saldo awal</small><strong>${money(item.amount)}</strong></div><div class="wallet-account-actions"><button type="button" data-account-action="edit" data-account-id="${escapeHtml(item.id)}" aria-label="Ubah ${escapeHtml(item.title)}" title="Ubah"><svg><use href="#icon-edit"></use></svg><span>Ubah</span></button><button type="button" data-account-action="delete" data-account-id="${escapeHtml(item.id)}" aria-label="Hapus ${escapeHtml(item.title)}" title="Hapus"><svg><use href="#icon-trash"></use></svg><span>Hapus</span></button></div></article>`).join('') : '<p class="muted wallet-empty">Belum ada akun.</p>';
+      const currentBalances = new Map(dashboardWalletBalances().wallets.map((wallet) => [String(wallet.id), wallet.current_balance]));
+      list.innerHTML = items.length ? items.map((item) => `<article class="wallet-account-card" draggable="true" data-account-row-id="${escapeHtml(item.id)}"><div class="wallet-account-card-head"><div><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(capitalizeFirst(item.subtitle))}</span></div><span class="wallet-account-grip" aria-hidden="true">⋮⋮</span></div><div class="wallet-account-balances"><div class="wallet-account-balance"><small>Saldo awal</small><strong>${money(item.amount)}</strong></div><div class="wallet-account-balance is-current"><small>Saldo saat ini</small><strong>${money(currentBalances.get(String(item.id)) ?? item.amount)}</strong></div></div><div class="wallet-account-actions"><button type="button" data-account-action="edit" data-account-id="${escapeHtml(item.id)}" aria-label="Ubah ${escapeHtml(item.title)}" title="Ubah"><svg><use href="#icon-edit"></use></svg><span>Ubah</span></button><button type="button" data-account-action="delete" data-account-id="${escapeHtml(item.id)}" aria-label="Hapus ${escapeHtml(item.title)}" title="Hapus"><svg><use href="#icon-trash"></use></svg><span>Hapus</span></button></div></article>`).join('') : '<p class="muted wallet-empty">Belum ada akun.</p>';
       return;
     }
     if (config.key === 'category') {
@@ -1218,7 +1220,7 @@
     const container = pageContainer();
     if (container) container.innerHTML = dashboardShell();
     setText('.breadcrumb strong', 'Dasbor');
-    setText('#currentDate', new Intl.DateTimeFormat('id-ID', { dateStyle: 'full' }).format(new Date()));
+    setText('#currentDate', new Intl.DateTimeFormat(locale(), { dateStyle: 'full' }).format(new Date()));
     setupDashboardWalletModal();
     setupDashboardBreakdownModal();
     setupDashboardAddTransaction();
@@ -1436,7 +1438,7 @@
     bindTransferForm();
     bindTransferHistory();
     setText('.breadcrumb strong', 'Transfer');
-    setText('#currentDate', new Intl.DateTimeFormat('id-ID', { dateStyle: 'full' }).format(new Date()));
+    setText('#currentDate', new Intl.DateTimeFormat(locale(), { dateStyle: 'full' }).format(new Date()));
     const cached = forceRefresh ? null : readCache('wallet');
     const transferCached = forceRefresh ? null : readCache('transfer');
     const transactionCached = forceRefresh ? null : readCache('transaction');
@@ -1465,7 +1467,7 @@
     const container = pageContainer();
     if (container) container.innerHTML = '';
     setText('.breadcrumb strong', config.title);
-    setText('#currentDate', new Intl.DateTimeFormat('id-ID', { dateStyle: 'full' }).format(new Date()));
+    setText('#currentDate', new Intl.DateTimeFormat(locale(), { dateStyle: 'full' }).format(new Date()));
   }
 
   function debtShell() {
@@ -1861,7 +1863,7 @@
     const container = pageContainer();
     if (container) container.innerHTML = debtShell();
     setText('.breadcrumb strong', 'Utang');
-    setText('#currentDate', new Intl.DateTimeFormat('id-ID', { dateStyle: 'full' }).format(new Date()));
+    setText('#currentDate', new Intl.DateTimeFormat(locale(), { dateStyle: 'full' }).format(new Date()));
     setupDebtModal();
     setupDebtPaymentForm();
     bindDebtActions();
@@ -2270,7 +2272,7 @@
     const container = pageContainer();
     if (container) container.innerHTML = savingShell();
     setText('.breadcrumb strong', 'Tabungan');
-    setText('#currentDate', new Intl.DateTimeFormat('id-ID', { dateStyle: 'full' }).format(new Date()));
+    setText('#currentDate', new Intl.DateTimeFormat(locale(), { dateStyle: 'full' }).format(new Date()));
     setupSavingModal();
     setupSavingDepositForm();
     bindSavingActions();
@@ -2297,7 +2299,7 @@
     const container = pageContainer();
     if (container) container.innerHTML = financeShell(config);
     setText('.breadcrumb strong', config.title);
-    setText('#currentDate', new Intl.DateTimeFormat('id-ID', { dateStyle: 'full' }).format(new Date()));
+    setText('#currentDate', new Intl.DateTimeFormat(locale(), { dateStyle: 'full' }).format(new Date()));
     bindAddButton(config);
     if (config.key === 'wallet') bindWalletActions();
     if (config.key === 'category') bindCategoryActions();
@@ -2319,7 +2321,46 @@
   }
 
   function reportShell() {
-    return `<section class="report-screen"><div class="report-content"><div class="dashboard-card-grid"><button type="button" class="dashboard-total-card" id="dashboardTotalCard" aria-haspopup="dialog"><span class="dashboard-total-label">Total Saldo</span><strong id="dashboardTotalMoney">Rp 0</strong></button><button type="button" class="dashboard-summary-card dashboard-income-card" data-dashboard-breakdown="income" aria-haspopup="dialog"><span class="dashboard-summary-label">Pemasukan</span><strong id="dashboardIncomeTotal">Rp 0</strong><small>Lihat per kategori</small></button><button type="button" class="dashboard-summary-card dashboard-expense-card" data-dashboard-breakdown="expense" aria-haspopup="dialog"><span class="dashboard-summary-label">Pengeluaran</span><strong id="dashboardExpenseTotal">Rp 0</strong><small>Lihat per kategori</small></button></div><section class="panel report-filter-panel"><div class="report-filter-heading"><div><p class="eyebrow">Analisis transaksi</p><h1>Laporan</h1></div><div class="report-export-actions"><button type="button" class="secondary-button" id="reportExportCsv">Export CSV</button><button type="button" class="secondary-button" id="reportExportXls">Export XLS</button><button type="button" class="secondary-button" id="reportExportPdf">Export PDF</button></div></div><div class="report-filters"><label>Tipe<select id="reportType"><option value="all">Semua tipe</option><option value="income">Pemasukan</option><option value="expense">Pengeluaran</option></select></label><label>Kategori<select id="reportCategory"><option value="all">Semua kategori</option></select></label><label>Periode<select id="reportPeriod"><option value="all">Semua waktu</option><option value="date">Tanggal tertentu</option><option value="range">Rentang tanggal</option><option value="month">Bulanan</option></select></label><label id="reportDateField" hidden>Tanggal<input id="reportDate" type="date"></label><label id="reportStartField" hidden>Dari<input id="reportStartDate" type="date"></label><label id="reportEndField" hidden>Sampai<input id="reportEndDate" type="date"></label><label id="reportMonthField" hidden>Bulan<input id="reportMonth" type="month"></label></div></section><section class="panel report-chart-panel"><div class="report-panel-heading"><div><h2>Grafik transaksi</h2><p class="muted" id="reportResultSummary">0 transaksi</p></div></div><div id="reportChart" class="report-chart"></div></section><section class="panel report-list-panel"><div class="report-panel-heading"><h2>Daftar transaksi</h2></div><div id="reportList" class="report-list"></div></section></div></section>`;
+    return `<section class="report-screen">
+      <div class="report-content">
+        <div class="dashboard-card-grid">
+          <button type="button" class="dashboard-total-card" id="dashboardTotalCard" aria-haspopup="dialog"><span class="dashboard-total-label">Total Saldo</span><strong id="dashboardTotalMoney">Rp 0</strong></button>
+          <button type="button" class="dashboard-summary-card dashboard-income-card" data-dashboard-breakdown="income" aria-haspopup="dialog"><span class="dashboard-summary-label">Pemasukan</span><strong id="dashboardIncomeTotal">Rp 0</strong><small>Lihat per kategori</small></button>
+          <button type="button" class="dashboard-summary-card dashboard-expense-card" data-dashboard-breakdown="expense" aria-haspopup="dialog"><span class="dashboard-summary-label">Pengeluaran</span><strong id="dashboardExpenseTotal">Rp 0</strong><small>Lihat per kategori</small></button>
+        </div>
+        <section class="panel report-filter-panel">
+          <div class="report-filter-heading"><div><p class="eyebrow">LAPORAN KEUANGAN</p><h1>Laporan transaksi</h1><p class="report-page-intro">Tinjau pemasukan, pengeluaran, dan aktivitas keuangan berdasarkan filter.</p></div><div class="report-header-date"><span>TANGGAL HARI INI</span><strong id="reportHeaderDate"></strong></div></div>
+          <div class="report-filters">
+            <label>Tipe<select id="reportType"><option value="all">Semua tipe</option><option value="income">Pemasukan</option><option value="expense">Pengeluaran</option></select></label>
+            <label>Kategori<select id="reportCategory"><option value="all">Semua kategori</option></select></label>
+            <label>Periode<select id="reportPeriod"><option value="all">Semua waktu</option><option value="date">Tanggal tertentu</option><option value="range">Rentang tanggal</option><option value="month">Bulanan</option></select></label>
+            <label id="reportDateField" hidden>Tanggal<input id="reportDate" type="date"></label>
+            <label id="reportStartField" hidden>Dari<input id="reportStartDate" type="date"></label>
+            <label id="reportEndField" hidden>Sampai<input id="reportEndDate" type="date"></label>
+            <label id="reportMonthField" hidden>Bulan<input id="reportMonth" type="month"></label>
+          </div>
+        </section>
+        <section class="panel report-chart-panel"><div class="report-panel-heading"><div><h2>Grafik transaksi</h2><p class="muted" id="reportResultSummary">0 transaksi</p></div></div><div id="reportChart" class="report-chart"></div></section>
+        <section class="panel report-list-panel"><div class="report-panel-heading"><h2>Daftar transaksi</h2></div><div id="reportList" class="report-list"></div></section>
+        <div class="report-export-actions report-export-footer" aria-label="Ekspor dan cetak laporan">
+          <button type="button" class="report-action-button report-action-csv" id="reportExportCsv">Export CSV</button>
+          <button type="button" class="report-action-button report-action-xls" id="reportExportXls">Export XLS</button>
+          <button type="button" class="report-action-button report-action-pdf" id="reportExportPdf">Export PDF</button>
+          <button type="button" class="report-action-button report-action-print" id="reportPrint"><svg aria-hidden="true"><use href="#icon-printer"></use></svg><span>Cetak</span></button>
+        </div>
+        <div class="modal-backdrop report-print-preview-backdrop" id="reportPrintPreview" hidden>
+          <section class="data-modal report-print-preview-modal" role="dialog" aria-modal="true" aria-labelledby="reportPrintPreviewTitle">
+            <div class="data-modal-header"><div><p class="eyebrow">Pratinjau dokumen</p><h2 id="reportPrintPreviewTitle">Laporan transaksi</h2></div><button type="button" class="modal-close" id="closeReportPrintPreview" aria-label="Tutup pratinjau">&times;</button></div>
+            <div class="report-print-options">
+              <label for="reportPrintPaper">Ukuran kertas<select id="reportPrintPaper"><option value="A4">A4 · 210 × 297 mm</option><option value="A3">A3 · 297 × 420 mm</option><option value="A5">A5 · 148 × 210 mm</option><option value="B4">B4 · 250 × 353 mm</option><option value="B5">B5 · 176 × 250 mm</option><option value="Letter">Letter · 216 × 279 mm</option><option value="Legal">Legal · 216 × 356 mm</option><option value="Tabloid">Tabloid · 279 × 432 mm</option><option value="Thermal58">Thermal struk · 58 mm (roll)</option><option value="Thermal80">Thermal struk · 80 mm (roll)</option></select></label>
+              <label for="reportPrintOrientation">Orientasi<select id="reportPrintOrientation"><option value="portrait">Potret</option><option value="landscape">Lanskap</option></select></label>
+            </div>
+            <div class="report-print-preview-scroll"><div class="report-print-preview-document" id="reportPrintPreviewDocument"></div></div>
+            <div class="report-print-preview-actions"><button type="button" class="secondary-button" id="cancelReportPrint">Kembali</button><button type="button" class="primary-button" id="confirmReportPrint"><svg><use href="#icon-printer"></use></svg>Cetak dokumen</button></div>
+          </section>
+        </div>
+      </div>
+    </section>`;
   }
 
   function reportCategoryLabel(item) {
@@ -2405,7 +2446,11 @@
   }
 
   function reportExportRows() {
-    return reportFilteredItems().map((item) => [formatDate(item.date), categoryTypeLabel(dashboardTransactionType(item)), reportCategoryLabel(item), Number(item.amount) || 0, item.note || item.title || '']);
+    return reportFilteredItems().map((item) => {
+      const type = dashboardTransactionType(item);
+      const category = type === 'transfer' ? (String(item.note || '').trim() || '-') : reportCategoryLabel(item);
+      return [formatDate(item.date), categoryTypeLabel(type), category, Number(item.amount) || 0, item.note || item.title || ''];
+    });
   }
 
   function downloadReportFile(content, filename, type) {
@@ -2432,15 +2477,140 @@
     downloadReportFile(`<!doctype html><html><meta charset="utf-8"><body>${table}</body></html>`, 'laporan-transaksi.xls', 'application/vnd.ms-excel;charset=utf-8');
   }
 
-  function exportReportPdf() {
+  function reportPrintContentHtml(paper) {
     const items = reportFilteredItems();
     const rows = reportExportRows();
+    const typeLabel = documentObject.querySelector('#reportType')?.selectedOptions[0]?.textContent || 'Semua tipe';
+    const categoryLabel = documentObject.querySelector('#reportCategory')?.selectedOptions[0]?.textContent || 'Semua kategori';
+    const periodLabel = documentObject.querySelector('#reportPeriod')?.selectedOptions[0]?.textContent || 'Semua waktu';
+    const dateDetails = [
+      documentObject.querySelector('#reportDate')?.value,
+      documentObject.querySelector('#reportStartDate')?.value,
+      documentObject.querySelector('#reportEndDate')?.value,
+      documentObject.querySelector('#reportMonth')?.value,
+    ].filter(Boolean).join(' – ');
+    const periodInfo = [periodLabel, dateDetails].filter(Boolean).join(' · ');
+    const filters = [typeLabel, categoryLabel, periodInfo].filter(Boolean).map(escapeHtml).join(' · ');
+    const totals = items.reduce((summary, item) => {
+      const amount = Number(item.amount) || 0;
+      const type = dashboardTransactionType(item);
+      if (type === 'income') summary.income += amount;
+      else if (type === 'expense') summary.expense += amount;
+      else if (type === 'transfer') summary.transfer += amount;
+      return summary;
+    }, { income: 0, expense: 0, transfer: 0 });
+    const generatedAt = escapeHtml(new Intl.DateTimeFormat(locale(), { dateStyle: 'long', timeStyle: 'short' }).format(new Date()));
+    const ownerName = String(windowObject.DuitCurrentUser && windowObject.DuitCurrentUser.full_name || '').trim();
+    if (paper && paper.thermal) {
+      const receiptRows = rows.map((row) => `<article class="print-receipt-item"><div class="print-receipt-heading"><strong>${escapeHtml(row[1])}</strong><span>${escapeHtml(row[0])}</span></div><p><span>Kategori</span><b>${escapeHtml(row[2])}</b></p><p><span>Catatan</span><b>${escapeHtml(row[4] || '-')}</b></p><p class="print-receipt-amount"><span>Jumlah</span><b>${escapeHtml(money(row[3]))}</b></p></article>`).join('');
+      return `<article class="print-report-document print-thermal"><div class="print-thermal-brand">DUIT · LAPORAN KEUANGAN</div><h1>Laporan transaksi</h1><p class="print-report-meta">Dicetak ${generatedAt}</p><div class="print-thermal-summary"><p><span>Transaksi</span><b>${items.length}</b></p><p><span>Pemasukan</span><b>${escapeHtml(money(totals.income))}</b></p><p><span>Pengeluaran</span><b>${escapeHtml(money(totals.expense))}</b></p><p><span>Transfer</span><b>${escapeHtml(money(totals.transfer))}</b></p></div><p class="print-thermal-period">${filters}</p><div class="print-receipt-list">${receiptRows || '<p class="print-receipt-empty">Tidak ada transaksi.</p>'}</div></article>`;
+    }
+    return `<article class="print-report-document"><div class="print-report-brand"><strong>DUIT</strong><span>LAPORAN KEUANGAN</span></div><header class="print-report-heading"><div><p class="print-report-kicker">RINGKASAN TRANSAKSI</p><h1>Laporan transaksi</h1><p class="print-report-subtitle">Ringkasan aktivitas keuangan berdasarkan filter yang dipilih.</p></div><div class="print-report-generated"><span>DICETAK PADA</span><strong>${generatedAt}</strong>${ownerName ? `<small>${escapeHtml(ownerName)}</small>` : ''}</div></header><section class="print-report-summary"><div><span>Jumlah transaksi</span><strong>${items.length}</strong></div><div><span>Total pemasukan</span><strong>${escapeHtml(money(totals.income))}</strong></div><div><span>Total pengeluaran</span><strong>${escapeHtml(money(totals.expense))}</strong></div><div><span>Total transfer</span><strong>${escapeHtml(money(totals.transfer))}</strong></div></section><section class="print-report-filters"><div><span>Periode</span><strong>${escapeHtml(periodInfo)}</strong></div><div><span>Tipe transaksi</span><strong>${escapeHtml(typeLabel)}</strong></div><div><span>Kategori</span><strong>${escapeHtml(categoryLabel)}</strong></div></section><table><thead><tr><th>Tanggal</th><th>Tipe</th><th>Kategori</th><th>Jumlah</th><th>Keterangan</th></tr></thead><tbody>${rows.map((row) => `<tr>${row.map((cell) => `<td>${escapeHtml(cell)}</td>`).join('')}</tr>`).join('')}</tbody></table></article>`;
+  }
+
+  const reportPaperSizes = {
+    A4: { width: 210, height: 297, css: 'A4' },
+    A3: { width: 297, height: 420, css: 'A3' },
+    A5: { width: 148, height: 210, css: 'A5' },
+    B4: { width: 250, height: 353, css: 'B4' },
+    B5: { width: 176, height: 250, css: 'B5' },
+    Letter: { width: 215.9, height: 279.4, css: 'Letter' },
+    Legal: { width: 215.9, height: 355.6, css: 'Legal' },
+    Tabloid: { width: 279.4, height: 431.8, css: 'Tabloid' },
+    Thermal58: { width: 58, height: 120, css: 'Thermal58', thermal: true },
+    Thermal80: { width: 80, height: 120, css: 'Thermal80', thermal: true },
+  };
+
+  function selectedReportPaper() {
+    const key = documentObject.querySelector('#reportPrintPaper')?.value || 'A4';
+    const selected = reportPaperSizes[key] || reportPaperSizes.A4;
+    const orientation = !selected.thermal && documentObject.querySelector('#reportPrintOrientation')?.value === 'landscape' ? 'landscape' : 'portrait';
+    if (selected.thermal) {
+      const charsPerLine = selected.width < 70 ? 18 : 28;
+      const contentHeight = reportFilteredItems().reduce((height, item) => {
+        const note = String(item.note || item.title || '').length;
+        return height + 24 + Math.max(0, Math.ceil(note / charsPerLine) - 1) * 3.5;
+      }, 70);
+      const filterHeight = Math.max(0, Math.ceil(reportPrintFilterLabel().length / charsPerLine) - 1) * 3.5;
+      return { ...selected, orientation, height: Math.max(80, contentHeight + filterHeight) };
+    }
+    return { ...selected, orientation, width: orientation === 'landscape' ? selected.height : selected.width, height: orientation === 'landscape' ? selected.width : selected.height };
+  }
+
+  function reportPrintFilterLabel() {
+    return [
+      documentObject.querySelector('#reportType')?.selectedOptions[0]?.textContent || 'Semua tipe',
+      documentObject.querySelector('#reportCategory')?.selectedOptions[0]?.textContent || 'Semua kategori',
+      documentObject.querySelector('#reportPeriod')?.selectedOptions[0]?.textContent || 'Semua waktu',
+    ].join(' · ');
+  }
+
+  function updateReportPreviewPaper() {
+    const preview = documentObject.querySelector('#reportPrintPreviewDocument');
+    const scroll = documentObject.querySelector('.report-print-preview-scroll');
+    if (!preview || !scroll) return;
+    const paper = selectedReportPaper();
+    const orientationControl = documentObject.querySelector('#reportPrintOrientation');
+    if (orientationControl) {
+      orientationControl.disabled = Boolean(paper.thermal);
+      if (paper.thermal) orientationControl.value = 'portrait';
+    }
+    const widthPx = paper.width * 96 / 25.4;
+    const previewHeight = paper.height;
+    const heightPx = previewHeight * 96 / 25.4;
+    const zoom = Math.min(1, Math.max(.25, (scroll.clientWidth - 8) / widthPx));
+    preview.style.width = `${widthPx}px`;
+    preview.style.maxWidth = 'none';
+    preview.style.minHeight = `${heightPx}px`;
+    preview.style.zoom = String(zoom);
+    preview.style.aspectRatio = `${paper.width} / ${previewHeight}`;
+    preview.classList.toggle('is-thermal', Boolean(paper.thermal));
+  }
+
+  function reportPrintDocumentHtml() {
+    const paper = selectedReportPaper();
+    const pageSize = paper.thermal ? `${paper.width}mm ${paper.height}mm` : `${paper.css} ${paper.orientation}`;
+    const pageMargin = paper.thermal ? '3mm' : '12mm';
+    const styles = `@page{size:${pageSize};margin:${pageMargin}}*{box-sizing:border-box}body{font:12px Arial,sans-serif;color:#222;background:#f3f4f8;padding:24px}.print-report-document{width:100%;max-width:900px;margin:0 auto;padding:24px;background:#fff}.print-report-brand{display:flex;align-items:center;gap:8px;padding-bottom:12px;border-bottom:2px solid #6254dc;color:#6254dc;font-size:10px;font-weight:bold;letter-spacing:.7px}.print-report-brand strong{font-size:14px}.print-report-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;padding:18px 0 14px}.print-report-kicker{margin:0 0 5px;color:#6254dc;font-size:9px;font-weight:bold;letter-spacing:1px}.print-report-heading h1{margin:0 0 5px;font-size:23px}.print-report-subtitle{margin:0;color:#666;font-size:10px}.print-report-generated{display:flex;flex-direction:column;gap:4px;max-width:220px;text-align:right}.print-report-generated span{color:#777;font-size:8px;font-weight:bold;letter-spacing:.7px}.print-report-generated strong{font-size:10px}.print-report-generated small{color:#666;font-size:9px}.print-report-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:4px 0 12px}.print-report-summary div{display:flex;flex-direction:column;gap:5px;padding:9px;border:1px solid #e1e3e9;border-radius:6px;background:#fafbfc}.print-report-summary span,.print-report-filters span{color:#777;font-size:8px}.print-report-summary strong{font-size:11px}.print-report-filters{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:8px;margin:0 0 16px;padding:9px 0;border-top:1px solid #e1e3e9;border-bottom:1px solid #e1e3e9}.print-report-filters div{display:flex;flex-direction:column;gap:4px;min-width:0}.print-report-filters strong{font-size:9px;overflow-wrap:anywhere}table{width:100%;table-layout:fixed;border-collapse:collapse;margin-top:10px}th,td{border:1px solid #ddd;padding:6px;text-align:left;vertical-align:top;overflow-wrap:anywhere;word-break:break-word}th{background:#f2f2f2;font-size:9px}td{font-size:9px}tr{break-inside:avoid}th:nth-child(1){width:13%}th:nth-child(2){width:12%}th:nth-child(3){width:20%}th:nth-child(4){width:16%}th:nth-child(5){width:39%}.print-thermal{max-width:none;padding:3mm}.print-thermal .print-thermal-brand{justify-content:center;padding-bottom:5px;font-size:8px}.print-thermal .print-thermal-brand strong{font-size:9px}.print-thermal h1{margin:5px 0;text-align:center;font-size:12px}.print-thermal .print-report-meta{text-align:center;font-size:8px}.print-thermal-summary{margin:7px 0;padding:5px 0;border-top:1px dashed #888;border-bottom:1px dashed #888}.print-thermal-summary p{display:flex;justify-content:space-between;gap:4px;margin:3px 0;font-size:8px}.print-thermal-period{margin:5px 0;font-size:8px;overflow-wrap:anywhere}.print-receipt-item{padding:7px 0;border-top:1px dashed #888;break-inside:avoid}.print-receipt-heading,.print-receipt-item p{display:flex;justify-content:space-between;gap:5px;margin:3px 0;font-size:9px}.print-receipt-heading{font-size:10px}.print-receipt-item p span{flex:0 0 auto}.print-receipt-item p b{text-align:right;overflow-wrap:anywhere}.print-receipt-amount{padding-top:4px;border-top:1px dotted #aaa;font-weight:bold}.print-receipt-empty{text-align:center;font-size:9px}@media print{body{padding:0;background:#fff}.print-report-document{max-width:none;padding:0}.print-thermal{padding:0}}`;
+    return `<!doctype html><html><head><meta charset="utf-8"><title>Laporan transaksi</title><style>${styles}</style></head><body>${reportPrintContentHtml(paper)}</body></html>`;
+  }
+
+  function openReportPrintPreview() {
+    const modal = documentObject.querySelector('#reportPrintPreview');
+    const content = documentObject.querySelector('#reportPrintPreviewDocument');
+    if (!modal || !content) return;
+    content.innerHTML = reportPrintContentHtml(selectedReportPaper());
+    modal.hidden = false;
+    documentObject.body.classList.add('modal-open');
+    updateReportPreviewPaper();
+    documentObject.querySelector('#closeReportPrintPreview')?.focus();
+  }
+
+  function closeReportPrintPreview() {
+    const modal = documentObject.querySelector('#reportPrintPreview');
+    if (!modal) return;
+    modal.hidden = true;
+    documentObject.body.classList.remove('modal-open');
+    documentObject.querySelector('#reportPrint')?.focus();
+  }
+
+  function refreshReportPrintPreview() {
+    const content = documentObject.querySelector('#reportPrintPreviewDocument');
+    if (content) content.innerHTML = reportPrintContentHtml(selectedReportPaper());
+    updateReportPreviewPaper();
+  }
+
+  function printReportDocument() {
     const printWindow = windowObject.open('', '_blank');
     if (!printWindow) return;
-    printWindow.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Laporan transaksi</title><style>body{font:14px Arial;color:#222;padding:24px}h1{margin:0 0 8px}p{color:#666}table{width:100%;border-collapse:collapse;margin-top:20px}th,td{border:1px solid #ddd;padding:8px;text-align:left}th{background:#f2f2f2}</style></head><body><h1>Laporan transaksi</h1><p>${items.length} transaksi</p><table><thead><tr><th>Tanggal</th><th>Tipe</th><th>Kategori</th><th>Jumlah</th><th>Keterangan</th></tr></thead><tbody>${rows.map((row) => `<tr>${row.map((cell) => `<td>${escapeHtml(cell)}</td>`).join('')}</tr>`).join('')}</tbody></table></body></html>`);
+    printWindow.document.write(reportPrintDocumentHtml());
     printWindow.document.close();
     printWindow.focus();
-    printWindow.print();
+    windowObject.setTimeout(() => { try { printWindow.print(); } catch (error) { /* Tunggu jika jendela cetak belum siap. */ } }, 400);
+  }
+
+  function exportReportPdf() {
+    printReportDocument();
   }
 
   function setupReportPage() {
@@ -2453,6 +2623,13 @@
     documentObject.querySelector('#reportExportCsv')?.addEventListener('click', exportReportCsv);
     documentObject.querySelector('#reportExportXls')?.addEventListener('click', exportReportXls);
     documentObject.querySelector('#reportExportPdf')?.addEventListener('click', exportReportPdf);
+    documentObject.querySelector('#reportPrint')?.addEventListener('click', openReportPrintPreview);
+    documentObject.querySelector('#confirmReportPrint')?.addEventListener('click', printReportDocument);
+    documentObject.querySelector('#closeReportPrintPreview')?.addEventListener('click', closeReportPrintPreview);
+    documentObject.querySelector('#cancelReportPrint')?.addEventListener('click', closeReportPrintPreview);
+    documentObject.querySelector('#reportPrintPreview')?.addEventListener('click', (event) => { if (event.target.id === 'reportPrintPreview') closeReportPrintPreview(); });
+    documentObject.querySelector('#reportPrintPaper')?.addEventListener('change', refreshReportPrintPreview);
+    documentObject.querySelector('#reportPrintOrientation')?.addEventListener('change', refreshReportPrintPreview);
     updateReportPeriodFields();
     renderReport();
   }
@@ -2461,7 +2638,8 @@
     const container = pageContainer();
     if (container) container.innerHTML = reportShell();
     setText('.breadcrumb strong', 'Laporan');
-    setText('#currentDate', new Intl.DateTimeFormat('id-ID', { dateStyle: 'full' }).format(new Date()));
+    setText('#currentDate', new Intl.DateTimeFormat(locale(), { dateStyle: 'full' }).format(new Date()));
+    setText('#reportHeaderDate', new Intl.DateTimeFormat(locale(), { dateStyle: 'long' }).format(new Date()));
     setupDashboardWalletModal();
     setupDashboardBreakdownModal();
     setupReportPage();
@@ -2497,6 +2675,7 @@
   }
 
   windowObject.addEventListener('hashchange', () => load(false));
+  documentObject.addEventListener('duit:language-changed', () => load(false));
   documentObject.addEventListener('duit:refresh-data', refreshFromSpreadsheet);
   setupAccountModal();
   setupCategoryModal();

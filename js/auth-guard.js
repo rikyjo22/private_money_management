@@ -44,6 +44,7 @@
       }
       updateProfile(result.user);
       documentObject.documentElement.classList.remove('auth-checking');
+      documentObject.dispatchEvent(new CustomEvent('duit:auth-ready', { detail: { user: result.user } }));
     })
     .catch(() => {
       windowObject.DuitAuth.clearSessionCookie();

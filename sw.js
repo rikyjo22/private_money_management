@@ -8,6 +8,8 @@ const STATIC_ASSETS = [
   './css/login.css',
   './js/auth.js',
   './js/auth-guard.js',
+  './js/settings.js',
+  './js/i18n.js',
   './js/login.js',
   './js/script.js',
   './js/finance-page.js',

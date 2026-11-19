@@ -135,9 +135,8 @@ document.addEventListener('keydown', (event) => {
   }
 });
 
-profileMenu.querySelector('a').addEventListener('click', () => {
+document.querySelector('#openProfileSettings').addEventListener('click', () => {
   closeProfileMenu();
-  if (window.innerWidth <= 700) setSidebar(true);
 });
 
 document.querySelectorAll('.logout-button').forEach((logoutButton) => {
@@ -150,7 +149,7 @@ document.querySelectorAll('.logout-button').forEach((logoutButton) => {
     DuitAuth.clearSessionCookie();
     try {
       Object.keys(window.localStorage)
-        .filter((key) => key.indexOf('duit_cache_v1_') === 0 || key.indexOf('duit_last_sync_') === 0 || key === 'duit_current_user_id')
+        .filter((key) => key.indexOf('duit_cache_v1_') === 0 || key.indexOf('duit_last_sync_') === 0 || key.indexOf('duit_profile_photo_v1_') === 0 || key === 'duit_current_user_id')
         .forEach((key) => window.localStorage.removeItem(key));
     } catch (storageError) {
       console.warn('Cache lokal tidak dapat dibersihkan.', storageError);
