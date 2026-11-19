@@ -66,14 +66,25 @@
   function renderLastUpdated(value) {
     const button = documentObject.querySelector('#refreshDataButton');
     if (!button) return;
+    const label = documentObject.querySelector('#lastSyncLabel');
     if (!value) {
-      button.title = 'Belum diperbarui';
+      const emptyLabel = windowObject.DuitI18n?.t('Belum disinkronkan') || 'Belum disinkronkan';
+      button.title = emptyLabel;
+      if (label) label.textContent = emptyLabel;
       return;
     }
     const date = new Date(value);
-    button.title = Number.isNaN(date.getTime())
-      ? 'Belum diperbarui'
-      : `${windowObject.DuitI18n?.getLanguage() === 'en' ? 'Last synced' : 'Diperbarui'} ${new Intl.DateTimeFormat(locale(), { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(date)}`;
+    if (Number.isNaN(date.getTime())) {
+      const emptyLabel = windowObject.DuitI18n?.t('Belum disinkronkan') || 'Belum disinkronkan';
+      button.title = emptyLabel;
+      if (label) label.textContent = emptyLabel;
+      return;
+    }
+    const fullDateTime = new Intl.DateTimeFormat(locale(), { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(date);
+    const shortDateTime = new Intl.DateTimeFormat(locale(), { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(date);
+    button.title = `${windowObject.DuitI18n?.getLanguage() === 'en' ? 'Last synced' : 'Sinkron terakhir'} ${fullDateTime}`;
+    button.setAttribute('aria-label', windowObject.DuitI18n?.t('Sinkronkan data') || 'Sinkronkan data');
+    if (label) label.textContent = shortDateTime;
   }
 
   function restoreLastUpdated() {
@@ -168,8 +179,12 @@
       });
       const oldDeleted = new Set((oldPage.deleted_ids || []).map((id) => String(id)));
       const newDeleted = (newPage.deleted_ids || []).map((id) => String(id));
-      const deletedIds = newDeleted.filter((id) => !oldDeleted.has(id));
       const orderSensitive = page === 'wallet' || page === 'category';
+      // Resend pending wallet/category tombstones even if a previous snapshot
+      // already contains them, so the sheet deletion cannot be skipped.
+      const deletedIds = orderSensitive
+        ? [...new Set(newDeleted.map((id) => String(id || '').trim()).filter(Boolean))]
+        : newDeleted.filter((id) => !oldDeleted.has(id));
       if (orderSensitive && (changedItems.length || deletedIds.length)) {
         changed[page] = { ...newPage, items: newItems };
       } else if (changedItems.length || deletedIds.length) {
@@ -228,6 +243,7 @@
   let editingTransferId = '';
   let pendingTransferDelete = null;
   let pendingAccountDelete = null;
+  let pendingCategoryDelete = null;
   let editingDebtId = '';
   let pendingDebtDelete = null;
   let editingDebtPaymentId = '';
@@ -816,7 +832,7 @@
     }
     cached.items = cached.items.filter((item) => String(item.id) !== id);
     cached.deleted_ids = Array.isArray(cached.deleted_ids) ? cached.deleted_ids : [];
-    if (!cached.deleted_ids.includes(id) && !id.startsWith('local_')) cached.deleted_ids.push(id);
+    if (!cached.deleted_ids.includes(id)) cached.deleted_ids.push(id);
     cached.summary = { total: cached.items.reduce((sum, row) => sum + (Number(row.amount) || 0), 0), count: cached.items.length };
     writeCache('wallet', cached);
     closeAccountDeleteModal();
@@ -846,6 +862,40 @@
     const modal = documentObject.querySelector('#categoryModal');
     if (modal) modal.hidden = true;
     editingCategoryId = '';
+  }
+
+  function openCategoryDeleteModal(category) {
+    const modal = documentObject.querySelector('#categoryDeleteModal');
+    if (!modal || !category) return;
+    pendingCategoryDelete = { ...category };
+    const categoryName = documentObject.querySelector('#categoryDeleteName');
+    if (categoryName) categoryName.textContent = category.title || 'Kategori';
+    modal.hidden = false;
+    windowObject.setTimeout(() => documentObject.querySelector('#confirmCategoryDelete')?.focus(), 0);
+  }
+
+  function closeCategoryDeleteModal() {
+    const modal = documentObject.querySelector('#categoryDeleteModal');
+    if (modal) modal.hidden = true;
+    pendingCategoryDelete = null;
+  }
+
+  function confirmCategoryDeleteAction() {
+    if (!pendingCategoryDelete) return;
+    const cached = readCache('category');
+    const id = String(pendingCategoryDelete.id || '');
+    if (!cached || !Array.isArray(cached.items)) {
+      closeCategoryDeleteModal();
+      return;
+    }
+    cached.items = cached.items.filter((item) => String(item.id) !== id);
+    cached.deleted_ids = Array.isArray(cached.deleted_ids) ? cached.deleted_ids : [];
+    if (!cached.deleted_ids.includes(id)) cached.deleted_ids.push(id);
+    cached.summary = { total: cached.items.length, count: cached.items.length };
+    writeCache('category', cached);
+    closeCategoryDeleteModal();
+    renderFinance(cached, configs.kategori);
+    showToast('Kategori dihapus dari perangkat. Tekan Sinkronkan data untuk menerapkan penghapusan.');
   }
 
   function saveLocalCategory(form) {
@@ -883,14 +933,7 @@
       const item = cached && Array.isArray(cached.items) ? cached.items.find((row) => String(row.id) === button.dataset.categoryId) : null;
       if (!item) return;
       if (button.dataset.categoryAction === 'edit') { openCategoryModal(item); return; }
-      if (!windowObject.confirm(`Hapus kategori ${item.title || ''}?`)) return;
-      cached.items = cached.items.filter((row) => String(row.id) !== button.dataset.categoryId);
-      cached.deleted_ids = Array.isArray(cached.deleted_ids) ? cached.deleted_ids : [];
-      if (!cached.deleted_ids.includes(button.dataset.categoryId) && !button.dataset.categoryId.startsWith('local_')) cached.deleted_ids.push(button.dataset.categoryId);
-      cached.summary = { total: cached.items.length, count: cached.items.length };
-      writeCache('category', cached);
-      renderFinance(cached, configs.kategori);
-      showToast('Kategori dihapus dari data lokal. Tekan Perbarui data untuk menyinkronkan.');
+      openCategoryDeleteModal(item);
     });
 
     let draggedId = '';
@@ -949,8 +992,13 @@
   function setupCategoryModal() {
     documentObject.querySelector('#closeCategoryModal')?.addEventListener('click', closeCategoryModal);
     documentObject.querySelector('#cancelCategoryModal')?.addEventListener('click', closeCategoryModal);
-    documentObject.querySelector('#categoryModal')?.addEventListener('click', (event) => { if (event.target.id === 'categoryModal') closeCategoryModal(); });
     documentObject.querySelector('#categoryForm')?.addEventListener('submit', (event) => { event.preventDefault(); saveLocalCategory(event.currentTarget); });
+  }
+
+  function setupCategoryDeleteModal() {
+    documentObject.querySelector('#closeCategoryDeleteModal')?.addEventListener('click', closeCategoryDeleteModal);
+    documentObject.querySelector('#cancelCategoryDeleteModal')?.addEventListener('click', closeCategoryDeleteModal);
+    documentObject.querySelector('#confirmCategoryDelete')?.addEventListener('click', confirmCategoryDeleteAction);
   }
 
   function openTransactionModal(transaction) {
@@ -1114,9 +1162,6 @@
   function setupAccountModal() {
     documentObject.querySelector('#closeAccountModal')?.addEventListener('click', closeAccountModal);
     documentObject.querySelector('#cancelAccountModal')?.addEventListener('click', closeAccountModal);
-    documentObject.querySelector('#accountModal')?.addEventListener('click', (event) => {
-      if (event.target.id === 'accountModal') closeAccountModal();
-    });
     documentObject.querySelector('#accountForm')?.addEventListener('submit', (event) => {
       event.preventDefault();
       saveLocalAccount(event.currentTarget);
@@ -2679,6 +2724,7 @@
   documentObject.addEventListener('duit:refresh-data', refreshFromSpreadsheet);
   setupAccountModal();
   setupCategoryModal();
+  setupCategoryDeleteModal();
   setupTransactionModal();
   setupTransactionDeleteModal();
   setupTransferDeleteModal();

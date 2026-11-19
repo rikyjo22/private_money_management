@@ -45,9 +45,6 @@
     element.textContent = photoDataUrl ? '' : initials(user && user.full_name);
     element.style.backgroundImage = photoDataUrl ? `url("${photoDataUrl}")` : '';
     element.classList.toggle('has-photo', Boolean(photoDataUrl));
-    if (element.id === 'profileMenuToggle') {
-      element.setAttribute('aria-label', `Buka menu profil ${String(user && user.full_name || '').trim()}`);
-    }
   }
 
   function renderUser(user, photoDataUrl) {
@@ -56,10 +53,12 @@
     currentPhoto = photo;
     windowObject.DuitCurrentUser = { ...windowObject.DuitCurrentUser, ...user };
     cachePhoto(user.id, photo);
-    setAvatar(documentObject.querySelector('#profileMenuToggle'), user, photo);
+    setAvatar(documentObject.querySelector('#profileAvatar'), user, photo);
     setAvatar(documentObject.querySelector('.profile-mini .avatar'), user, photo);
-    const sidebarName = documentObject.querySelector('.profile-copy strong');
+    const sidebarName = documentObject.querySelector('#sidebarProfileName, .profile-copy strong');
     if (sidebarName) sidebarName.textContent = user.full_name || '';
+    const profileSettingsButton = documentObject.querySelector('#openProfileSettings');
+    if (profileSettingsButton) profileSettingsButton.setAttribute('aria-label', `Buka pengaturan profil ${String(user.full_name || '').trim()}`);
     setAvatar(photoPreview, user, selectedPhoto || photo);
   }
 

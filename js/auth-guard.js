@@ -10,16 +10,16 @@
       .join('')
       .toLocaleUpperCase('id-ID');
 
-    const topbarAvatar = documentObject.querySelector('#profileMenuToggle');
-    if (topbarAvatar) {
-      topbarAvatar.textContent = initials;
-      topbarAvatar.setAttribute('aria-label', `Buka menu profil ${fullName}`);
-    }
-
-    const sidebarAvatar = documentObject.querySelector('.profile-mini .avatar');
+    const sidebarAvatar = documentObject.querySelector('#profileAvatar');
     if (sidebarAvatar) sidebarAvatar.textContent = initials;
 
-    const sidebarName = documentObject.querySelector('.profile-copy strong');
+    const profileSettingsButton = documentObject.querySelector('#openProfileSettings');
+    if (profileSettingsButton) profileSettingsButton.setAttribute('aria-label', `Buka pengaturan profil ${fullName}`);
+
+    const legacySidebarAvatar = documentObject.querySelector('.profile-mini .avatar');
+    if (legacySidebarAvatar) legacySidebarAvatar.textContent = initials;
+
+    const sidebarName = documentObject.querySelector('#sidebarProfileName, .profile-copy strong');
     if (sidebarName) sidebarName.textContent = fullName;
   }
 

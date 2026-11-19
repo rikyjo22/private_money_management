@@ -2,7 +2,7 @@ const sidebar = document.querySelector('#sidebar');
 const menuToggle = document.querySelector('#menuToggle');
 const closeSidebar = document.querySelector('#closeSidebar');
 const overlay = document.querySelector('#sidebarOverlay');
-const navItems = document.querySelectorAll('.nav-item');
+const navItems = document.querySelectorAll('.main-nav .nav-item');
 const toast = document.querySelector('#toast');
 
 function updateHeaderTitle(activeItem) {
@@ -109,42 +109,11 @@ window.addEventListener('resize', () => {
   setSidebar(window.innerWidth > 700);
 });
 
-const profileMenuToggle = document.querySelector('#profileMenuToggle');
-const profileMenu = document.querySelector('#profileMenu');
-const profileMenuContainer = document.querySelector('#topbarProfileMenu');
-
-function closeProfileMenu() {
-  profileMenu.hidden = true;
-  profileMenuToggle.setAttribute('aria-expanded', 'false');
-}
-
-profileMenuToggle.addEventListener('click', () => {
-  const isOpen = !profileMenu.hidden;
-  profileMenu.hidden = isOpen;
-  profileMenuToggle.setAttribute('aria-expanded', String(!isOpen));
-});
-
-document.addEventListener('click', (event) => {
-  if (!profileMenuContainer.contains(event.target)) closeProfileMenu();
-});
-
-document.addEventListener('keydown', (event) => {
-  if (event.key === 'Escape' && !profileMenu.hidden) {
-    closeProfileMenu();
-    profileMenuToggle.focus();
-  }
-});
-
-document.querySelector('#openProfileSettings').addEventListener('click', () => {
-  closeProfileMenu();
-});
-
 document.querySelectorAll('.logout-button').forEach((logoutButton) => {
   logoutButton.addEventListener('click', () => {
     document.querySelectorAll('.logout-button').forEach((button) => {
       button.disabled = true;
     });
-    closeProfileMenu();
     const token = DuitAuth.getSessionToken();
     DuitAuth.clearSessionCookie();
     try {

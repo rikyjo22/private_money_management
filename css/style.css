@@ -1049,6 +1049,17 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .profile-modal .data-form input[readonly] { color:var(--muted); background:var(--table-head); cursor:default; }
 .profile-save-status { min-height:16px; margin:0; color:var(--primary-dark); font-size:11px; line-height:1.45; }
 .profile-modal .data-form-actions { margin-top:0; }
+.category-delete-name { display:block; margin-bottom:4px; color:var(--ink); font-size:13px; font-weight:700; }
+.sidebar-profile-menu { position:relative; margin:5px 0 7px; }
+.sidebar-profile-trigger { width:100%; min-height:46px; padding:6px 10px; gap:10px; text-align:left; }
+.sidebar-profile-trigger .sidebar-avatar { width:32px; height:32px; flex:0 0 32px; font-size:10px; }
+.sidebar-profile-name { min-width:0; overflow:hidden; color:inherit; font-size:12px; font-weight:600; text-overflow:ellipsis; white-space:nowrap; }
+.sidebar-profile-menu .profile-dropdown { top:auto; right:auto; bottom:calc(100% + 7px); left:0; width:100%; min-width:180px; }
+.sync-control { display:flex; align-items:center; gap:9px; }
+.last-sync-label { max-width:160px; overflow:hidden; color:var(--muted); font-size:10px; font-weight:500; text-align:right; text-overflow:ellipsis; white-space:nowrap; }
+.refresh-status.refresh-button { display:grid; width:36px; height:36px; flex:0 0 36px; place-items:center; padding:0; border-radius:11px; }
+.refresh-status.refresh-button svg { width:17px; height:17px; }
+@media (max-width:700px) { .last-sync-label { max-width:112px; font-size:9px; }.sync-control { gap:6px; }.refresh-status.refresh-button { width:34px; height:34px; flex-basis:34px; } }
 @media (max-width:480px) {
   .profile-modal { padding:18px; }
   .profile-photo-picker { padding:11px; }

@@ -196,6 +196,11 @@
       lastAppliedTheme = theme;
     }
     documentObject.documentElement.dataset.theme = theme;
+    const themeColorMeta = documentObject.querySelector('meta[name="theme-color"]');
+    if (themeColorMeta) {
+      const appBackground = windowObject.getComputedStyle(documentObject.documentElement).getPropertyValue('--bg').trim();
+      if (appBackground) themeColorMeta.setAttribute('content', appBackground);
+    }
     if (windowObject.DuitI18n) windowObject.DuitI18n.setLanguage(language);
     else documentObject.documentElement.lang = language;
     documentObject.documentElement.style.setProperty('--app-font-family', `"${fontFamily}", sans-serif`);

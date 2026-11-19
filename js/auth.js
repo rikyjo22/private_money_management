@@ -1,5 +1,5 @@
 // Isi URL Web App Apps Script jika halaman dijalankan di luar Apps Script.
-window.DUIT_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbztsMlCsrvJLIWm0MRkJjl941-Ce3bjdeH3sK7Nu2Dt6K8jaBUrkapLXe4R2iXaloe_/exec';
+window.DUIT_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxuLvkiRXaKVtFBh0JmRb6_r1vOI7Jwm2sPth-I_zdBMScop3R9DjNDZnU4N6J_8wosRw/exec';
 
 (function setupDuitAuth(windowObject, documentObject) {
   const COOKIE_NAME = 'duit_session';
