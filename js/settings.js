@@ -158,7 +158,15 @@
     const active = mainNav.querySelector('.nav-item.active');
     if (active && active.hidden) {
       const firstVisible = ordered.find((item) => !item.hidden);
-      if (firstVisible) windowObject.location.hash = firstVisible.getAttribute('href');
+      if (firstVisible) {
+        const nextHash = firstVisible.getAttribute('href');
+        if (windowObject.DuitNavigation && typeof windowObject.DuitNavigation.replaceRoute === 'function') {
+          windowObject.DuitNavigation.replaceRoute(nextHash);
+        } else {
+          windowObject.history.replaceState(windowObject.history.state, '', nextHash);
+          windowObject.dispatchEvent(new Event('hashchange'));
+        }
+      }
     }
   }
 

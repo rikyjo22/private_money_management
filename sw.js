@@ -1,4 +1,4 @@
-const CACHE_NAME = 'duit-static-v1';
+const CACHE_NAME = 'duit-static-v2';
 const STATIC_ASSETS = [
   './',
   './index.html',
@@ -12,6 +12,7 @@ const STATIC_ASSETS = [
   './js/i18n.js',
   './js/login.js',
   './js/script.js',
+  './js/profile.js',
   './js/finance-page.js',
   './js/pwa.js',
   './icon/Duit.png',

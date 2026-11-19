@@ -24,6 +24,33 @@ if (!financeHashes.includes(window.location.hash.slice(1))) {
   });
 }
 
+// Navigasi antar screen tidak boleh membuat stack history baru. Dengan begitu,
+// tombol Back tidak memutar ulang semua screen yang sebelumnya dibuka dari
+// sidebar.
+function replaceRoute(nextHash) {
+  const hash = String(nextHash || '#dasbor').startsWith('#')
+    ? String(nextHash || '#dasbor')
+    : `#${String(nextHash)}`;
+  if (window.location.hash === hash) return false;
+  window.history.replaceState(window.history.state, '', hash);
+  window.dispatchEvent(new Event('hashchange'));
+  return true;
+}
+
+window.DuitNavigation = window.DuitNavigation || {};
+window.DuitNavigation.replaceRoute = replaceRoute;
+
+// Sediakan satu entri duplikat sebagai penjaga. Back pertama hanya kembali ke
+// entri aplikasi yang sama (tidak mengubah screen), sedangkan Back berikutnya
+// dapat meninggalkan aplikasi.
+const currentHistoryState = window.history.state;
+if (!(currentHistoryState && currentHistoryState.duitAppBackGuard === true)) {
+  const guardState = currentHistoryState && typeof currentHistoryState === 'object'
+    ? { ...currentHistoryState, duitAppBackGuard: true }
+    : { duitAppBackGuard: true };
+  window.history.pushState(guardState, '', window.location.href);
+}
+
 const initialActiveHash = window.location.hash || '#dasbor';
 const initialActiveItem = Array.from(navItems).find((item) => item.getAttribute('href') === initialActiveHash);
 if (initialActiveItem) {
@@ -62,7 +89,8 @@ if (closeSidebar) {
 overlay.addEventListener('click', () => setSidebar(false));
 
 navItems.forEach((item) => {
-  item.addEventListener('click', () => {
+  item.addEventListener('click', (event) => {
+    event.preventDefault();
     navItems.forEach((link) => {
       link.classList.remove('active');
       link.removeAttribute('aria-current');
@@ -70,6 +98,7 @@ navItems.forEach((item) => {
     item.classList.add('active');
     item.setAttribute('aria-current', 'page');
     updateHeaderTitle(item);
+    replaceRoute(item.getAttribute('href'));
     if (window.innerWidth <= 700) setSidebar(false);
   });
 });
